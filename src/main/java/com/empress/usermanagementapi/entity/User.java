@@ -10,7 +10,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 
+import jakarta.persistence.Table;
+
 @Entity
+@Table(name = "users") // <-- avoid conflict with SQL keyword "user"
 public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
