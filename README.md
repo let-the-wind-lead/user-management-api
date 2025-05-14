@@ -42,3 +42,10 @@ JSON body:
   "password": "123123",
   "role": "USER"
 }
+---
+
+## 🛠️ How to Run
+
+### 🧪 Run Locally with Maven
+```bash
+./mvnw spring-boot:run
