@@ -41,6 +41,7 @@ JSON body:
   "email": "newbie@example.com",
   "password": "123123",
   "role": "USER"
+```markdown
 }
 
 ---
