@@ -1,0 +1,56 @@
+{
+  "info": {
+    "name": "User Management API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            { "key": "username", "value": "admin", "type": "string" },
+            { "key": "password", "value": "admin", "type": "string" }
+          ]
+        },
+        "url": {
+          "raw": "https://user-management-api-production-7709.up.railway.app/users",
+          "protocol": "https",
+          "host": ["user-management-api-production-7709", "up", "railway", "app"],
+          "path": ["users"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"newbie\",\n  \"email\": \"newbie@example.com\",\n  \"password\": \"123123\",\n  \"role\": \"USER\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Get Users",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            { "key": "username", "value": "admin", "type": "string" },
+            { "key": "password", "value": "admin", "type": "string" }
+          ]
+        },
+        "url": {
+          "raw": "https://user-management-api-production-7709.up.railway.app/users",
+          "protocol": "https",
+          "host": ["user-management-api-production-7709", "up", "railway", "app"],
+          "path": ["users"]
+        }
+      }
+    }
+  ]
+}
