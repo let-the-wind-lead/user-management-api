@@ -32,15 +32,18 @@ Deployed on [Railway](https://user-management-api-production-7709.up.railway.app
 
 All endpoints are protected. Use Basic Auth (`admin:admin` for admin actions).
 
-**Register User**  
-`POST /users`  
+**Register User**
+**POST** `/users`
+JSON body:
 
+```json
 {
   "username": "newbie",
   "email": "newbie@example.com",
   "password": "123123",
   "role": "USER"
 }
+
 
 ---
 
