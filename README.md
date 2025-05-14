@@ -43,7 +43,7 @@ JSON body:
   "password": "123123",
   "role": "USER"
 }
-
+```
 
 ---
 
