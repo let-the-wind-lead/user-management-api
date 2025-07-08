@@ -21,16 +21,27 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/hello").permitAll()
-                .requestMatchers("/auth/**").permitAll()           // allow your /auth/login endpoint if you still use it
-                .requestMatchers("/users/**").hasRole("ADMIN")      // only ADMIN can CRUD users
-                .anyRequest().authenticated()
-            )
-            .httpBasic(Customizer.withDefaults())
-            .build();
+        http
+          .csrf(csrf -> csrf.disable())
+          .authorizeHttpRequests(authz -> authz
+            .requestMatchers("/login", "/css/**", "/js/**").permitAll()
+            .requestMatchers("/admin/**").hasRole("ADMIN")
+            .requestMatchers("/user/**").hasAnyRole("USER","ADMIN")
+            .anyRequest().authenticated()
+          )
+          .formLogin(form -> form
+            .loginPage("/login")
+            .successHandler((req, res, auth) -> {
+              boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+              res.sendRedirect(isAdmin ? "/admin" : "/user");
+            })
+            .permitAll()
+          )
+          .logout(logout -> logout
+            .logoutSuccessUrl("/login?logout")
+          );
+        return http.build();
     }
 
     @Bean
@@ -39,21 +50,21 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
+        return cfg.getAuthenticationManager();
     }
 
     @Bean
     public UserDetailsService userDetailsService(UserRepository userRepo) {
         return username -> {
-            User u = userRepo.findByUsername(username);            // your JPA method
+            User u = userRepo.findByUsername(username);
             if (u == null) {
                 throw new UsernameNotFoundException("No such user: " + username);
             }
             return org.springframework.security.core.userdetails.User.builder()
                 .username(u.getUsername())
-                .password(u.getPassword())                        // must be BCrypt hash in DB
-                .roles(u.getRole().name())                        // “ADMIN” or “USER”
+                .password(u.getPassword())
+                .roles(u.getRole().name())
                 .build();
         };
     }
