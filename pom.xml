@@ -22,6 +22,12 @@
 	</properties>
 
 	<dependencies>
+		<!-- timeleaf thing -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+
 		<!-- H2 in-memory DB for development -->
 		<dependency>
 			<groupId>com.h2database</groupId>
