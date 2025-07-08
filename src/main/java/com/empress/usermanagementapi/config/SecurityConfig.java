@@ -24,23 +24,11 @@ public class SecurityConfig {
         http
           .csrf(csrf -> csrf.disable())
           .authorizeHttpRequests(authz -> authz
-            .requestMatchers("/login", "/css/**", "/js/**").permitAll()
-            .requestMatchers("/admin/**").hasRole("ADMIN")
-            .requestMatchers("/user/**").hasAnyRole("USER","ADMIN")
+            .requestMatchers("/hello").permitAll()
+            .requestMatchers("/users/**").hasRole("ADMIN")
             .anyRequest().authenticated()
           )
-          .formLogin(form -> form
-            .loginPage("/login")
-            .successHandler((req, res, auth) -> {
-              boolean isAdmin = auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-              res.sendRedirect(isAdmin ? "/admin" : "/user");
-            })
-            .permitAll()
-          )
-          .logout(logout -> logout
-            .logoutSuccessUrl("/login?logout")
-          );
+          .httpBasic(Customizer.withDefaults());   // ← restores the browser’s popup
         return http.build();
     }
 
@@ -63,8 +51,8 @@ public class SecurityConfig {
             }
             return org.springframework.security.core.userdetails.User.builder()
                 .username(u.getUsername())
-                .password(u.getPassword())
-                .roles(u.getRole().name())
+                .password(u.getPassword())   // expects BCrypt hash from DB
+                .roles(u.getRole().name())   // “ADMIN” or “USER”
                 .build();
         };
     }
