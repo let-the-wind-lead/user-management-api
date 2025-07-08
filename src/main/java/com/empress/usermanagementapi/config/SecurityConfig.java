@@ -2,6 +2,8 @@ package com.empress.usermanagementapi.config;
 
 import com.empress.usermanagementapi.entity.User;
 import com.empress.usermanagementapi.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -10,14 +12,11 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableMethodSecurity
@@ -45,12 +44,12 @@ public class SecurityConfig {
         return http.build();
     }
 
-    private void loginSuccessHandler(HttpServletRequest request,
-                                     HttpServletResponse response,
-                                     Authentication authentication) throws java.io.IOException {
-        boolean isAdmin = authentication.getAuthorities().stream()
+    private void loginSuccessHandler(HttpServletRequest req,
+                                     HttpServletResponse res,
+                                     Authentication auth) throws java.io.IOException {
+        boolean isAdmin = auth.getAuthorities().stream()
             .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        response.sendRedirect(isAdmin ? "/admin" : "/user");
+        res.sendRedirect(isAdmin ? "/admin" : "/user");
     }
 
     @Bean
@@ -64,16 +63,16 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService(UserRepository userRepo) {
+    public UserDetailsService userDetailsService(UserRepository repo) {
         return username -> {
-            User u = userRepo.findByUsername(username);
+            User u = repo.findByUsername(username);
             if (u == null) {
                 throw new UsernameNotFoundException("No such user: " + username);
             }
             return org.springframework.security.core.userdetails.User.builder()
                 .username(u.getUsername())
-                .password(u.getPassword())      // must be BCrypt in DB
-                .roles(u.getRole().name())      // ADMIN or USER
+                .password(u.getPassword())      // BCrypt hash in DB
+                .roles(u.getRole().name())      // “ADMIN” or “USER”
                 .build();
         };
     }
