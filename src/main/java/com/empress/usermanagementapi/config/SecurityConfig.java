@@ -9,11 +9,15 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableMethodSecurity
@@ -24,12 +28,29 @@ public class SecurityConfig {
         http
           .csrf(csrf -> csrf.disable())
           .authorizeHttpRequests(authz -> authz
-            .requestMatchers("/hello").permitAll()
-            .requestMatchers("/users/**").hasRole("ADMIN")
+            .requestMatchers("/login", "/css/**", "/js/**").permitAll()
+            .requestMatchers("/admin/**").hasRole("ADMIN")
+            .requestMatchers("/user/**").hasAnyRole("USER","ADMIN")
             .anyRequest().authenticated()
           )
-          .httpBasic(Customizer.withDefaults());   // ← restores the browser’s popup
+          .formLogin(form -> form
+            .loginPage("/login")
+            .successHandler(this::loginSuccessHandler)
+            .permitAll()
+          )
+          .logout(logout -> logout
+            .logoutSuccessUrl("/login?logout")
+            .permitAll()
+          );
         return http.build();
+    }
+
+    private void loginSuccessHandler(HttpServletRequest request,
+                                     HttpServletResponse response,
+                                     Authentication authentication) throws java.io.IOException {
+        boolean isAdmin = authentication.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        response.sendRedirect(isAdmin ? "/admin" : "/user");
     }
 
     @Bean
@@ -51,8 +72,8 @@ public class SecurityConfig {
             }
             return org.springframework.security.core.userdetails.User.builder()
                 .username(u.getUsername())
-                .password(u.getPassword())   // expects BCrypt hash from DB
-                .roles(u.getRole().name())   // “ADMIN” or “USER”
+                .password(u.getPassword())      // must be BCrypt in DB
+                .roles(u.getRole().name())      // ADMIN or USER
                 .build();
         };
     }
