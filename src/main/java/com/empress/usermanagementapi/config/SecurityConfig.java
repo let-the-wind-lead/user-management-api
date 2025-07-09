@@ -26,18 +26,15 @@ public class SecurityConfig {
         http
           .csrf(csrf -> csrf.disable())
           .authorizeHttpRequests(authz -> authz
-            .requestMatchers(
-                "/login","/register",
-                "/forgot-password","/reset-password",
-                "/css/**","/js/**"
-            ).permitAll()
+            .requestMatchers("/login", "/css/**", "/js/**",
+                             "/forgot-password", "/forgot-password/**").permitAll()
             .requestMatchers("/admin/**").hasRole("ADMIN")
             .requestMatchers("/user/**").hasAnyRole("USER","ADMIN")
             .anyRequest().authenticated()
           )
           .formLogin(form -> form
             .loginPage("/login")
-            .successHandler(this::onLoginSuccess)
+            .successHandler(this::loginSuccessHandler)
             .permitAll()
           )
           .logout(logout -> logout
@@ -47,9 +44,9 @@ public class SecurityConfig {
         return http.build();
     }
 
-    private void onLoginSuccess(HttpServletRequest req,
-                                HttpServletResponse res,
-                                Authentication auth) throws java.io.IOException {
+    private void loginSuccessHandler(HttpServletRequest req,
+                                     HttpServletResponse res,
+                                     Authentication auth) throws java.io.IOException {
         boolean isAdmin = auth.getAuthorities().stream()
             .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         res.sendRedirect(isAdmin ? "/admin" : "/user");
@@ -69,7 +66,9 @@ public class SecurityConfig {
     public UserDetailsService userDetailsService(UserRepository repo) {
         return username -> {
             User u = repo.findByUsername(username);
-            if (u == null) throw new UsernameNotFoundException("No such user: " + username);
+            if (u == null) {
+                throw new UsernameNotFoundException("No such user: " + username);
+            }
             return org.springframework.security.core.userdetails.User.builder()
                 .username(u.getUsername())
                 .password(u.getPassword())
