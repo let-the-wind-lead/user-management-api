@@ -26,9 +26,11 @@ public class SecurityConfig {
         http
           .csrf(csrf -> csrf.disable())
           .authorizeHttpRequests(authz -> authz
-            // Public endpoints
-            .requestMatchers("/login","/register","/forgot-password","/forgot-password/**","/reset-password","/reset-password/**","/css/**","/js/**").permitAll()
-            // Role‐based
+            .requestMatchers(
+                "/login","/register",
+                "/forgot-password","/reset-password",
+                "/css/**","/js/**"
+            ).permitAll()
             .requestMatchers("/admin/**").hasRole("ADMIN")
             .requestMatchers("/user/**").hasAnyRole("USER","ADMIN")
             .anyRequest().authenticated()
