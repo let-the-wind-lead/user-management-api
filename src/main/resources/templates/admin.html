@@ -1,8 +1,137 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Admin Dashboard</title>
+    <style>
+      table { border-collapse: collapse; width: 100%; }
+      th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+      th { background: #f4f4f4; }
+      button { margin: 0 4px; }
+      form { margin-top: 20px; }
+      input, select { margin-right: 8px; }
+    </style>
+  </head>
   <body>
     <h1>Welcome, Empress (ADMIN Dashboard)</h1>
     <p><a href="/logout">Log out</a></p>
-    <!-- your admin actions here -->
+
+    <!-- 1) User List Table -->
+    <h2>All Users</h2>
+    <table id="usersTable">
+      <thead>
+        <tr>
+          <th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- rows go here via JS -->
+      </tbody>
+    </table>
+
+    <!-- 2) Create New User Form -->
+    <h2>Create New User</h2>
+    <form id="createForm">
+      <input type="text" id="newUsername" placeholder="Username" required/>
+      <input type="email" id="newEmail" placeholder="Email" required/>
+      <input type="password" id="newPassword" placeholder="Password" required/>
+      <select id="newRole">
+        <option value="USER">USER</option>
+        <option value="ADMIN">ADMIN</option>
+      </select>
+      <button type="submit">Create</button>
+    </form>
+
+    <script>
+      // Base URL of your API (same origin)
+      const API_BASE = '';
+
+      // Utility: fetch with BasicAuth credentials included
+      function authFetch(url, opts) {
+        opts = opts || {};
+        opts.credentials = 'include';
+        opts.headers = Object.assign({'Content-Type':'application/json'}, opts.headers);
+        return fetch(API_BASE + url, opts)
+          .then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return opts.method === 'GET' ? res.json() : res.json().catch(() => {});
+          });
+      }
+
+      // 1) Load and display all users
+      function loadUsers() {
+        authFetch('/users', { method: 'GET' })
+          .then(users => {
+            const tbody = document.querySelector('#usersTable tbody');
+            tbody.innerHTML = '';
+            users.forEach(u => {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td>${u.id}</td>
+                <td><input value="${u.username}" data-id="${u.id}" class="edit-username"/></td>
+                <td><input value="${u.email}" data-id="${u.id}" class="edit-email"/></td>
+                <td>
+                  <select data-id="${u.id}" class="edit-role">
+                    <option value="USER" ${u.role==='USER'?'selected':''}>USER</option>
+                    <option value="ADMIN" ${u.role==='ADMIN'?'selected':''}>ADMIN</option>
+                  </select>
+                </td>
+                <td>
+                  <button data-id="${u.id}" class="save-btn">Save</button>
+                  <button data-id="${u.id}" class="delete-btn">Delete</button>
+                </td>`;
+              tbody.appendChild(tr);
+            });
+            attachRowEventHandlers();
+          })
+          .catch(err => alert('Error loading users: '+err));
+      }
+
+      // 2) Attach Save/Delete handlers
+      function attachRowEventHandlers() {
+        document.querySelectorAll('.save-btn').forEach(btn => {
+          btn.onclick = () => {
+            const id = btn.dataset.id;
+            const username = document.querySelector(`.edit-username[data-id="${id}"]`).value;
+            const email    = document.querySelector(`.edit-email[data-id="${id}"]`).value;
+            const role     = document.querySelector(`.edit-role[data-id="${id}"]`).value;
+            authFetch(`/users/${id}`, {
+              method: 'PUT',
+              body: JSON.stringify({username, email, role})
+            }).then(loadUsers)
+              .catch(err => alert('Save failed: '+err));
+          };
+        });
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.onclick = () => {
+            if (!confirm('Delete user?')) return;
+            authFetch(`/users/${btn.dataset.id}`, { method: 'DELETE' })
+              .then(loadUsers)
+              .catch(err => alert('Delete failed: '+err));
+          };
+        });
+      }
+
+      // 3) Handle Create Form submission
+      document.getElementById('createForm').onsubmit = e => {
+        e.preventDefault();
+        const username = document.getElementById('newUsername').value;
+        const email    = document.getElementById('newEmail').value;
+        const password = document.getElementById('newPassword').value;
+        const role     = document.getElementById('newRole').value;
+        authFetch('/users', {
+          method: 'POST',
+          body: JSON.stringify({username, email, password, role})
+        })
+        .then(() => {
+          document.getElementById('createForm').reset();
+          loadUsers();
+        })
+        .catch(err => alert('Create failed: '+err));
+      };
+
+      // Initial load
+      loadUsers();
+    </script>
   </body>
 </html>
