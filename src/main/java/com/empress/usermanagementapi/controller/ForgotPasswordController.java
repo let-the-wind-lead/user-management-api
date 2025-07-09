@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -21,23 +22,27 @@ public class ForgotPasswordController {
 
     /**
      * POST /forgot-password
-     * { "email": "user@example.com" }
+     * {
+     *   "email": "user@example.com"
+     * }
      */
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody Map<String, String> body) {
         String email = body.get("email");
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
+        Optional<User> maybeUser = userRepository.findByEmail(email);
+
+        if (maybeUser.isEmpty()) {
             return ResponseEntity
                 .badRequest()
                 .body("No account found with that email address.");
         }
 
-        // Generate a one-time token (you should store it in DB with expiry in a real app)
+        User user = maybeUser.get();
+        // Generate a one-time token (in a real app you’d persist this with an expiry)
         String token = UUID.randomUUID().toString();
 
         // Send the reset link via email
-        emailService.sendPasswordResetEmail(email, token);
+        emailService.sendPasswordResetEmail(user.getEmail(), token);
 
         return ResponseEntity.ok("Password reset email sent.");
     }
