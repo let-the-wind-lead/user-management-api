@@ -17,23 +17,14 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    /**
-     * Create a brand‐new user: always bcrypt‐encode the raw password
-     * and default the role to USER if none is provided.
-     */
     public User create(User user) {
-        String rawPassword = user.getPassword();
-        user.setPassword(passwordEncoder.encode(rawPassword));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         if (user.getRole() == null) {
             user.setRole(Role.USER);
         }
         return userRepo.save(user);
     }
 
-    /**
-     * Update an existing user: if a non‐empty password is provided,
-     * bcrypt‐encode and save; otherwise leave the existing password intact.
-     */
     public User update(Long id, User user) {
         User existing = userRepo.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("No user " + id));
