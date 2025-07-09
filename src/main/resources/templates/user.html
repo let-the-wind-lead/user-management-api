@@ -20,11 +20,59 @@
     </div>
   </nav>
 
-  <!-- Content -->
-  <div class="container mt-5 text-center">
-    <h2 th:text="'Welcome, ' + ${username} + '!'">Welcome, User!</h2>
+  <div class="container mt-5">
+    <h2 th:text="'Welcome, ' + ${username} + '!'">Welcome!</h2>
     <p>Your role: <strong th:text="${role}">ROLE_USER</strong></p>
-    <p>This is your personal dashboard. You can view your profile details here.</p>
+
+    <hr />
+
+    <h4>Your Profile</h4>
+    <form id="profileForm" class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Email</label>
+        <input type="email" id="email" class="form-control"
+               th:value="${email}" required />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">New Password</label>
+        <input type="password" id="password" class="form-control"
+               placeholder="Leave blank to keep unchanged"/>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
   </div>
+
+  <script>
+    const API = '';
+    // helper for fetch with session
+    async function authFetch(path, opts={}) {
+      opts.credentials = 'include';
+      opts.headers = { 'Content-Type':'application/json' };
+      const res = await fetch(API + path, opts);
+      if (!res.ok) throw new Error(res.status);
+      return res.json().catch(() => {});
+    }
+
+    document.getElementById('profileForm').onsubmit = async e => {
+      e.preventDefault();
+      const email    = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const payload = { email };
+      if (password) payload.password = password;
+
+      try {
+        await authFetch('/users/me', {
+          method: 'PUT',
+          body: JSON.stringify(payload)
+        });
+        alert('Profile updated successfully.');
+        document.getElementById('password').value = '';
+      } catch (err) {
+        alert('Update failed: ' + err);
+      }
+    };
+  </script>
 </body>
 </html>
