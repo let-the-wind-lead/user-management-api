@@ -1,6 +1,7 @@
 package com.empress.usermanagementapi.controller;
 
 import com.empress.usermanagementapi.entity.PasswordResetToken;
+import com.empress.usermanagementapi.service.EmailService;
 import com.empress.usermanagementapi.service.PasswordResetService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,9 +11,12 @@ import org.springframework.web.bind.annotation.*;
 public class ForgotPasswordController {
 
     private final PasswordResetService resetService;
+    private final EmailService emailService;
 
-    public ForgotPasswordController(PasswordResetService resetService) {
+    public ForgotPasswordController(PasswordResetService resetService,
+                                    EmailService emailService) {
         this.resetService = resetService;
+        this.emailService = emailService;
     }
 
     @GetMapping("/forgot-password")
@@ -24,10 +28,10 @@ public class ForgotPasswordController {
     public String processForgotPassword(@RequestParam("email") String email, Model model) {
         try {
             PasswordResetToken token = resetService.createPasswordResetTokenForEmail(email);
-            // In real life, send email. For demo, show token link:
+            // Send real email
+            emailService.sendPasswordResetEmail(email, token.getToken());
             model.addAttribute("message",
-                "Reset link (demo) → " +
-                "<a href=\"/reset-password?token=" + token.getToken() + "\">Reset Password</a>");
+                "A password reset link has been sent to your email address.");
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
         }
