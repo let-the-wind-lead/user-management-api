@@ -1,68 +1,80 @@
 package com.empress.usermanagementapi.entity;
-import com.empress.usermanagementapi.entity.Role;
-
-
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
-
-import jakarta.persistence.Table;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 
 @Entity
-@Table(name = "users") // <-- avoid conflict with SQL keyword "user"
+@Table(name = "users") // avoid conflict with SQL keyword "user"
 public class User {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
-	private String username;
-	private String email;
-	private String password;
-	@Enumerated(EnumType.STRING)
-	private Role role;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String username;
+    private String email;
+    private String password;
 
-	//role stuff
-	public Role getRole() {
-	    return role;
-	}
-	public void setRole(Role role) {
-	    this.role = role;
-	}
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
-    	// Getters and setters will be added later
-	public Long getId() {
-    		return id;
-	}
+    /**
+     * Default constructor required by JPA and Jackson
+     */
+    public User() {
+    }
 
-	public void setId(Long id) {
-	    this.id = id;
-	}
+    /**
+     * Convenience constructor for manual instantiation
+     */
+    public User(String username, String email, String password, Role role) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+    }
 
-	public String getUsername() {
-	    return username;
-	}
+    // Getters and setters
+    public Long getId() {
+        return id;
+    }
 
-	public void setUsername(String username) {
-	    this.username = username;
-	}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	public String getEmail() {
-	    return email;
-	}
+    public String getUsername() {
+        return username;
+    }
 
-	public void setEmail(String email) {
-	    this.email = email;
-	}
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
-	public String getPassword() {
-	    return password;
-	}
+    public String getEmail() {
+        return email;
+    }
 
-	public void setPassword(String password) {
-	    this.password = password;
-	}
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
 }
