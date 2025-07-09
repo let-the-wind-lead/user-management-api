@@ -26,9 +26,9 @@ public class SecurityConfig {
         http
           .csrf(csrf -> csrf.disable())
           .authorizeHttpRequests(authz -> authz
-            // allow register page + form POST
-            .requestMatchers("/register", "/register/**").permitAll()
-            .requestMatchers("/login", "/css/**", "/js/**").permitAll()
+            // Public endpoints
+            .requestMatchers("/login","/register","/forgot-password","/forgot-password/**","/reset-password","/reset-password/**","/css/**","/js/**").permitAll()
+            // Role‐based
             .requestMatchers("/admin/**").hasRole("ADMIN")
             .requestMatchers("/user/**").hasAnyRole("USER","ADMIN")
             .anyRequest().authenticated()
@@ -49,8 +49,8 @@ public class SecurityConfig {
                                 HttpServletResponse res,
                                 Authentication auth) throws java.io.IOException {
         boolean isAdmin = auth.getAuthorities().stream()
-            .anyMatch(a->a.getAuthority().equals("ROLE_ADMIN"));
-        res.sendRedirect(isAdmin?"/admin":"/user");
+            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        res.sendRedirect(isAdmin ? "/admin" : "/user");
     }
 
     @Bean
@@ -59,8 +59,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration cfg) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
         return cfg.getAuthenticationManager();
     }
 
@@ -68,7 +67,7 @@ public class SecurityConfig {
     public UserDetailsService userDetailsService(UserRepository repo) {
         return username -> {
             User u = repo.findByUsername(username);
-            if (u==null) throw new UsernameNotFoundException("No such user: "+username);
+            if (u == null) throw new UsernameNotFoundException("No such user: " + username);
             return org.springframework.security.core.userdetails.User.builder()
                 .username(u.getUsername())
                 .password(u.getPassword())
