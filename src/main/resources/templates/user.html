@@ -10,6 +10,7 @@
   />
 </head>
 <body>
+  <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
       <span class="navbar-brand">User Dashboard</span>
@@ -19,11 +20,11 @@
     </div>
   </nav>
 
+  <!-- Content -->
   <div class="container mt-5 text-center">
-    <h2 th:text="'Welcome, ' + #authentication.name + '!'">Welcome, User!</h2>
-    <p>Your role: <strong th:text="${#authentication.authorities[0].authority}">ROLE_USER</strong></p>
+    <h2 th:text="'Welcome, ' + ${username} + '!'">Welcome, User!</h2>
+    <p>Your role: <strong th:text="${role}">ROLE_USER</strong></p>
     <p>This is your personal dashboard. You can view your profile details here.</p>
-    <!-- Future: add editable profile form -->
   </div>
 </body>
 </html>
