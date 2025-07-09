@@ -14,29 +14,35 @@ import java.util.UUID;
 @Controller
 public class ForgotPasswordController {
 
-    @Autowired
-    private UserRepository userRepo;
+    private final UserRepository userRepo;
+    private final EmailService emailService;
 
     @Autowired
-    private EmailService emailService;
+    public ForgotPasswordController(UserRepository userRepo,
+                                    EmailService emailService) {
+        this.userRepo = userRepo;
+        this.emailService = emailService;
+    }
 
     @GetMapping("/forgot-password")
-    public String showResetForm() {
+    public String showForm() {
         return "forgot-password";
     }
 
     @PostMapping("/forgot-password")
-    public String handleReset(@RequestParam("email") String email, Model model) {
-        Optional<User> userOpt = userRepo.findByEmail(email);
-        if (userOpt.isPresent()) {
-            // for demo: generate a random token
+    public String handleForm(@RequestParam String username,
+                             @RequestParam String email,
+                             Model model) {
+        Optional<User> opt = userRepo.findByUsernameAndEmail(username, email);
+        // Always show the same message for security
+        model.addAttribute("message",
+            "If an account matches those details, you’ll receive an email shortly."
+        );
+        if (opt.isPresent()) {
             String token = UUID.randomUUID().toString();
-            // TODO: persist token & user association, expire time, etc.
+            // TODO: persist the token associated to user with expiry
             String resetLink = "https://your-domain.com/reset-password?token=" + token;
             emailService.sendPasswordResetEmail(email, resetLink);
-            model.addAttribute("message", "If that address exists you’ll receive a reset link.");
-        } else {
-            model.addAttribute("message", "If that address exists you’ll receive a reset link.");
         }
         return "forgot-password";
     }
