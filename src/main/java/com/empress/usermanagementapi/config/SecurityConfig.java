@@ -26,7 +26,9 @@ public class SecurityConfig {
         http
           .csrf(csrf -> csrf.disable())
           .authorizeHttpRequests(authz -> authz
-            .requestMatchers("/login","/css/**","/js/**").permitAll()
+            // allow register page + form POST
+            .requestMatchers("/register", "/register/**").permitAll()
+            .requestMatchers("/login", "/css/**", "/js/**").permitAll()
             .requestMatchers("/admin/**").hasRole("ADMIN")
             .requestMatchers("/user/**").hasAnyRole("USER","ADMIN")
             .anyRequest().authenticated()
