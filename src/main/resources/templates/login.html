@@ -6,7 +6,6 @@
   <title>Sign In – User Management</title>
   <link rel="stylesheet" th:href="@{/css/styles.css}" />
   <style>
-    /* Minimal embedded styles if you don’t have a CSS file yet */
     body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; }
     .container { max-width: 400px; margin: 80px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     h1 { text-align: center; margin-bottom: 24px; color: #333; }
@@ -27,12 +26,14 @@
   <div class="container">
     <h1>Sign In</h1>
 
-    <!-- error & logout messages -->
     <div th:if="${param.error}" class="alert alert-danger">
       Invalid username or password.
     </div>
     <div th:if="${param.logout}" class="alert alert-success">
       You have been logged out.
+    </div>
+    <div th:if="${param.resetSuccess}" class="alert alert-success">
+      Password reset successful! Please log in.
     </div>
 
     <form th:action="@{/login}" method="post">
@@ -62,7 +63,6 @@
 
     <div class="links">
       <a th:href="@{/forgot-password}">Forgot your password?</a>
-      <!-- if you add a public registration page: -->
       <a th:href="@{/register}">Create an account</a>
     </div>
   </div>
