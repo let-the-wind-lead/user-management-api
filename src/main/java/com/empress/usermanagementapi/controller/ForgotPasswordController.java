@@ -1,62 +1,44 @@
 package com.empress.usermanagementapi.controller;
 
-import com.empress.usermanagementapi.entity.PasswordResetToken;
+import com.empress.usermanagementapi.entity.User;
+import com.empress.usermanagementapi.repository.UserRepository;
 import com.empress.usermanagementapi.service.EmailService;
-import com.empress.usermanagementapi.service.PasswordResetService;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+import java.util.Map;
+import java.util.UUID;
+
+@RestController
 public class ForgotPasswordController {
 
-    private final PasswordResetService resetService;
-    private final EmailService emailService;
+    @Autowired
+    private UserRepository userRepository;
 
-    public ForgotPasswordController(PasswordResetService resetService,
-                                    EmailService emailService) {
-        this.resetService = resetService;
-        this.emailService = emailService;
-    }
+    @Autowired
+    private EmailService emailService;
 
-    @GetMapping("/forgot-password")
-    public String displayForgotPasswordPage() {
-        return "forgot-password";
-    }
-
+    /**
+     * POST /forgot-password
+     * { "email": "user@example.com" }
+     */
     @PostMapping("/forgot-password")
-    public String processForgotPassword(@RequestParam("email") String email, Model model) {
-        try {
-            PasswordResetToken token = resetService.createPasswordResetTokenForEmail(email);
-            emailService.sendPasswordResetEmail(email, token.getToken());
-            model.addAttribute("message", "A reset link has been sent to your email.");
-        } catch (IllegalArgumentException e) {
-            model.addAttribute("error", e.getMessage());
+    public ResponseEntity<String> forgotPassword(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            return ResponseEntity
+                .badRequest()
+                .body("No account found with that email address.");
         }
-        return "forgot-password";
-    }
 
-    @GetMapping("/reset-password")
-    public String displayResetPasswordPage(@RequestParam("token") String token, Model model) {
-        String err = resetService.validatePasswordResetToken(token);
-        if (err != null) {
-            model.addAttribute("error", err);
-            return "forgot-password";
-        }
-        model.addAttribute("token", token);
-        return "reset-password";
-    }
+        // Generate a one-time token (you should store it in DB with expiry in a real app)
+        String token = UUID.randomUUID().toString();
 
-    @PostMapping("/reset-password")
-    public String processResetPassword(@RequestParam("token") String token,
-                                       @RequestParam("password") String password,
-                                       Model model) {
-        String err = resetService.resetPassword(token, password);
-        if (err != null) {
-            model.addAttribute("error", err);
-            model.addAttribute("token", token);
-            return "reset-password";
-        }
-        return "redirect:/login?resetSuccess";
+        // Send the reset link via email
+        emailService.sendPasswordResetEmail(email, token);
+
+        return ResponseEntity.ok("Password reset email sent.");
     }
 }
