@@ -13,8 +13,7 @@ public class EmailService {
     @Value("${spring.mail.from}")
     private String fromAddress;
 
-    // Replace with your deployed host or derive dynamically
-    @Value("${app.base-url:https://your-app.up.railway.app}")
+    @Value("${app.base-url}")
     private String appBaseUrl;
 
     public EmailService(JavaMailSender mailSender) {
@@ -26,13 +25,10 @@ public class EmailService {
         SimpleMailMessage msg = new SimpleMailMessage();
         msg.setFrom(fromAddress);
         msg.setTo(to);
-        msg.setSubject("Your Password Reset Link");
-        msg.setText("Hi,\n\n"
-            + "You requested a password reset. Click the link below to set a new password:\n"
-            + resetLink + "\n\n"
-            + "If you didn’t request this, just ignore this email.\n\n"
-            + "Thanks,\n"
-            + "User Management Team");
+        msg.setSubject("Password Reset Request");
+        msg.setText("To reset your password, click the link below:\n" +
+                    resetLink + "\n\n" +
+                    "If you did not request this, ignore this email.");
         mailSender.send(msg);
     }
 }
