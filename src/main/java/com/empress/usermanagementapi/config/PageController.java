@@ -1,5 +1,6 @@
 package com.empress.usermanagementapi.config;
 
+import com.empress.usermanagementapi.entity.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,22 +15,20 @@ public class PageController {
     }
 
     @GetMapping("/register")
-    public String register(Model model) {
-        model.addAttribute("userForm", new com.empress.usermanagementapi.entity.User());
+    public String register(Model m) {
+        m.addAttribute("userForm", new User());
         return "register";
     }
 
     @GetMapping("/admin")
-    public String admin(Model model, Principal principal) {
-        model.addAttribute("username", principal.getName());
-        model.addAttribute("role", "ADMIN");
+    public String admin(Model m, Principal p) {
+        m.addAttribute("username", p.getName());
         return "admin";
     }
 
     @GetMapping("/user")
-    public String user(Model model, Principal principal) {
-        model.addAttribute("username", principal.getName());
-        model.addAttribute("role", "USER");
+    public String user(Model m, Principal p) {
+        m.addAttribute("username", p.getName());
         return "user";
     }
 }
