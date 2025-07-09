@@ -21,6 +21,9 @@
           <div th:if="${param.logout}" class="alert alert-success">
             You’ve been logged out.
           </div>
+          <div th:if="${param.registered}" class="alert alert-success">
+            Registration successful! Please log in below.
+          </div>
           <div class="mb-3">
             <label for="username" class="form-label">Username</label>
             <input
@@ -43,10 +46,14 @@
               required
             />
           </div>
-          <div class="d-grid">
+          <div class="d-grid mb-3">
             <button type="submit" class="btn btn-primary">Log In</button>
           </div>
         </form>
+        <p class="text-center mb-0">
+          Don’t have an account?
+          <a href="/register">Sign Up</a>
+        </p>
       </div>
     </div>
   </div>
