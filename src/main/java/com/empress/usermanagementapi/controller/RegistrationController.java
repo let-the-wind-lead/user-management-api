@@ -16,11 +16,6 @@ public class RegistrationController {
         this.userService = userService;
     }
 
-    /**
-     * Handles POST /register: sets the new user's role to USER,
-     * delegates to UserService.create() (which bcrypts the password),
-     * then redirects back to login with a success flag.
-     */
     @PostMapping("/register")
     public String registerSubmit(@ModelAttribute("userForm") User userForm) {
         userForm.setRole(Role.USER);
