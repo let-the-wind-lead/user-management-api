@@ -13,11 +13,13 @@
   <div class="container d-flex align-items-center justify-content-center vh-100">
     <div class="card shadow-sm w-100" style="max-width: 400px;">
       <div class="card-body">
-        <h3 class="card-title text-center mb-4">Register</h3>
+        <h3 class="card-title text-center mb-4">Create Account</h3>
 
-        <!-- show success after redirect -->
+        <div th:if="${param.error}" class="alert alert-danger">
+          Something went wrong. Please try again.
+        </div>
         <div th:if="${param.registered}" class="alert alert-success">
-          Registration successful! Please log in.
+          Registration successful! You can now log in.
         </div>
 
         <form th:action="@{/register}" th:object="${userForm}" method="post">
@@ -57,14 +59,14 @@
             />
           </div>
 
-          <div class="d-grid">
+          <div class="d-grid mb-3">
             <button type="submit" class="btn btn-success">Sign Up</button>
           </div>
         </form>
 
-        <p class="text-center mt-3">
+        <p class="text-center mb-0">
           Already have an account?
-          <a href="/login">Log in</a>
+          <a href="/login">Log In</a>
         </p>
       </div>
     </div>
