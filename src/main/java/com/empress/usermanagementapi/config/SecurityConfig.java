@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -27,14 +26,14 @@ public class SecurityConfig {
         http
           .csrf(csrf -> csrf.disable())
           .authorizeHttpRequests(authz -> authz
-            .requestMatchers("/login", "/css/**", "/js/**").permitAll()
+            .requestMatchers("/login","/css/**","/js/**").permitAll()
             .requestMatchers("/admin/**").hasRole("ADMIN")
             .requestMatchers("/user/**").hasAnyRole("USER","ADMIN")
             .anyRequest().authenticated()
           )
           .formLogin(form -> form
             .loginPage("/login")
-            .successHandler(this::loginSuccessHandler)
+            .successHandler(this::onLoginSuccess)
             .permitAll()
           )
           .logout(logout -> logout
@@ -44,12 +43,12 @@ public class SecurityConfig {
         return http.build();
     }
 
-    private void loginSuccessHandler(HttpServletRequest req,
-                                     HttpServletResponse res,
-                                     Authentication auth) throws java.io.IOException {
+    private void onLoginSuccess(HttpServletRequest req,
+                                HttpServletResponse res,
+                                Authentication auth) throws java.io.IOException {
         boolean isAdmin = auth.getAuthorities().stream()
-            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        res.sendRedirect(isAdmin ? "/admin" : "/user");
+            .anyMatch(a->a.getAuthority().equals("ROLE_ADMIN"));
+        res.sendRedirect(isAdmin?"/admin":"/user");
     }
 
     @Bean
@@ -58,7 +57,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration cfg) throws Exception {
         return cfg.getAuthenticationManager();
     }
 
@@ -66,13 +66,11 @@ public class SecurityConfig {
     public UserDetailsService userDetailsService(UserRepository repo) {
         return username -> {
             User u = repo.findByUsername(username);
-            if (u == null) {
-                throw new UsernameNotFoundException("No such user: " + username);
-            }
+            if (u==null) throw new UsernameNotFoundException("No such user: "+username);
             return org.springframework.security.core.userdetails.User.builder()
                 .username(u.getUsername())
-                .password(u.getPassword())      // BCrypt hash in DB
-                .roles(u.getRole().name())      // “ADMIN” or “USER”
+                .password(u.getPassword())
+                .roles(u.getRole().name())
                 .build();
         };
     }
