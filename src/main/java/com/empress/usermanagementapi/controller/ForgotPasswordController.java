@@ -1,39 +1,49 @@
-########################################
-# 1) Datasource (Postgres on Railway) #
-########################################
+package com.empress.usermanagementapi.controller;
 
-# Railway gives you a DATABASE_URL like:
-#   postgres://<user>:<pass>@<host>:<port>/<db>
-# We expose it as SPRING_DATASOURCE_URL so Spring Boot picks it up:
-spring.datasource.url=${DATABASE_URL}
-spring.datasource.username=${PGUSER}
-spring.datasource.password=${PGPASSWORD}
+import com.empress.usermanagementapi.entity.User;
+import com.empress.usermanagementapi.repository.UserRepository;
+import com.empress.usermanagementapi.service.EmailService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-# Let Hibernate auto‐create/update tables (DEV only—consider "validate" in prod)
-spring.jpa.hibernate.ddl-auto=update
-# Tell Hibernate exactly which dialect to use
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
-########################################
-# 2) JPA / Show SQL (optional)        #
-########################################
+@RestController
+public class ForgotPasswordController {
 
-# spring.jpa.show-sql=true
-# spring.jpa.properties.hibernate.format_sql=true
+    @Autowired
+    private UserRepository userRepository;
 
-########################################
-# 3) Mail (needed by your EmailService)
-########################################
+    @Autowired
+    private EmailService emailService;
 
-# Your SMTP host (e.g. smtp.gmail.com, sendgrid, Mailgun, etc)
-spring.mail.host=${SMTP_HOST}
-spring.mail.port=${SMTP_PORT:587}
-spring.mail.username=${SMTP_USERNAME}
-spring.mail.password=${SMTP_PASSWORD}
+    /**
+     * POST /forgot-password
+     * {
+     *   "email": "user@example.com"
+     * }
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        Optional<User> maybeUser = userRepository.findByEmail(email);
 
-# Gmail/etc generally wants TLS + auth
-spring.mail.properties.mail.smtp.auth=true
-spring.mail.properties.mail.smtp.starttls.enable=true
+        if (maybeUser.isEmpty()) {
+            return ResponseEntity
+                .badRequest()
+                .body("No account found with that email address.");
+        }
 
-# The “from:” address your app will use
-spring.mail.from=${SMTP_FROM}
+        User user = maybeUser.get();
+        // Generate a one-time token (in a real app you’d persist this with an expiry)
+        String token = UUID.randomUUID().toString();
+
+        // Send the reset link via email
+        emailService.sendPasswordResetEmail(user.getEmail(), token);
+
+        return ResponseEntity.ok("Password reset email sent.");
+    }
+}
