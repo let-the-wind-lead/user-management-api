@@ -42,8 +42,13 @@ public class ForgotPasswordController {
             String token = UUID.randomUUID().toString();
             // TODO: persist the token associated to user with expiry
             String resetLink = "https://your-domain.com/reset-password?token=" + token;
+    
+            // *** DEBUG: put the link into the model so the template can show it ***
+            model.addAttribute("debugResetLink", resetLink);
+    
             emailService.sendPasswordResetEmail(email, resetLink);
         }
         return "forgot-password";
     }
+
 }
