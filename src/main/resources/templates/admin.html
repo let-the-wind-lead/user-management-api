@@ -29,7 +29,7 @@
           <th>Username</th>
           <th>Email</th>
           <th>Role</th>
-          <th>New Password</th>    <!-- new column -->
+          <th>New Password</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -64,12 +64,13 @@
 
   <script>
     const API = '';
+
     async function authFetch(path, opts = {}) {
       opts.credentials = 'include';
       opts.headers = { 'Content-Type': 'application/json' };
       const res = await fetch(API + path, opts);
-      if (!res.ok) throw new Error(res.status);
-      return opts.method === 'GET' ? res.json() : res.json().catch(() => {});
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json().catch(() => ({}));
     }
 
     async function loadUsers() {
@@ -111,43 +112,61 @@
           const role     = document.querySelector(`.edit-role[data-id="${id}"]`).value;
           const pwdField = document.querySelector(`.edit-password[data-id="${id}"]`);
           const password = pwdField.value;
-
-          // Build payload: include password only if non-empty
           const payload = { username, email, role };
           if (password) payload.password = password;
-
-          await authFetch(`/users/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(payload)
-          });
-          loadUsers();
+          try {
+            await authFetch(`/users/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+            loadUsers();
+          } catch (err) {
+            alert('❌ Update failed: ' + err.message);
+          }
         };
       });
 
       document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.onclick = async () => {
           if (!confirm('Delete this user?')) return;
-          await authFetch(`/users/${btn.dataset.id}`, { method: 'DELETE' });
-          loadUsers();
+          try {
+            await authFetch(`/users/${btn.dataset.id}`, { method: 'DELETE' });
+            loadUsers();
+          } catch (err) {
+            alert('❌ Delete failed: ' + err.message);
+          }
         };
       });
     }
 
+    // —— DEBUGGED Create Form Handler ——
     document.getElementById('createForm').onsubmit = async e => {
       e.preventDefault();
-      await authFetch('/users', {
-        method: 'POST',
-        body: JSON.stringify({
-          username: document.getElementById('newUsername').value,
-          email:    document.getElementById('newEmail').value,
-          password: document.getElementById('newPassword').value,
-          role:     document.getElementById('newRole').value
-        })
-      });
-      e.target.reset();
-      loadUsers();
+
+      // 1) you clicked
+      alert('🖱 Create button clicked');
+
+      // 2) build payload
+      const payload = {
+        username: document.getElementById('newUsername').value,
+        email:    document.getElementById('newEmail').value,
+        password: document.getElementById('newPassword').value,
+        role:     document.getElementById('newRole').value
+      };
+      alert('📋 Payload: ' + JSON.stringify(payload));
+
+      // 3) try to send it
+      try {
+        await authFetch('/users', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        alert('✅ User created successfully!');
+        e.target.reset();
+        loadUsers();
+      } catch (err) {
+        alert('❌ Failed to create user: ' + err.message);
+      }
     };
 
+    // initial load
     loadUsers();
   </script>
 </body>
