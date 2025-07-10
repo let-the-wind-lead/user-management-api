@@ -1,6 +1,5 @@
 package com.empress.usermanagementapi.config;
 
-import com.empress.usermanagementapi.entity.User;
 import com.empress.usermanagementapi.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -12,10 +11,10 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 @Configuration
 @EnableMethodSecurity
@@ -26,10 +25,18 @@ public class SecurityConfig {
         http
           .csrf(csrf -> csrf.disable())
           .authorizeHttpRequests(authz -> authz
-            .requestMatchers("/login", "/css/**", "/js/**",
-                             "/forgot-password", "/forgot-password/**").permitAll()
+            // public endpoints
+            .requestMatchers(
+                "/login",
+                "/css/**", "/js/**",
+                "/forgot-password", "/forgot-password/**",
+                "/reset-password", "/reset-password/**",
+                "/register", "/register/**"
+            ).permitAll()
+            // role‐protected areas
             .requestMatchers("/admin/**").hasRole("ADMIN")
             .requestMatchers("/user/**").hasAnyRole("USER","ADMIN")
+            // everything else needs auth
             .anyRequest().authenticated()
           )
           .formLogin(form -> form
@@ -58,18 +65,19 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
-        return cfg.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
     @Bean
     public UserDetailsService userDetailsService(UserRepository repo) {
         return username -> {
-            User u = repo.findByUsername(username);
+            var u = repo.findByUsername(username);
             if (u == null) {
                 throw new UsernameNotFoundException("No such user: " + username);
             }
-            return org.springframework.security.core.userdetails.User.builder()
+            return org.springframework.security.core.userdetails.User
+                .builder()
                 .username(u.getUsername())
                 .password(u.getPassword())
                 .roles(u.getRole().name())
