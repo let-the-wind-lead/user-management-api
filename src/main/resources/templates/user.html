@@ -22,7 +22,9 @@
 
   <div class="container mt-5">
     <h2 th:text="'Welcome, ' + ${username} + '!'">Welcome!</h2>
-    <p>Your role: <strong th:text="${role}">ROLE_USER</strong></p>
+    <p>Your role: 
+      <strong th:text="${role.name()}">USER</strong>
+    </p>
 
     <hr />
 
@@ -46,7 +48,6 @@
 
   <script>
     const API = '';
-    // helper for fetch with session
     async function authFetch(path, opts={}) {
       opts.credentials = 'include';
       opts.headers = { 'Content-Type':'application/json' };
