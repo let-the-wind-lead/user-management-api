@@ -25,7 +25,9 @@ public class ForgotPasswordController {
     }
 
     @GetMapping("/forgot-password")
-    public String showForm() {
+    public String showForm(Model model) {
+        // Clear debug on fresh GET
+        model.addAttribute("debugReceived", null);
         return "forgot-password";
     }
 
@@ -33,22 +35,27 @@ public class ForgotPasswordController {
     public String handleForm(@RequestParam String username,
                              @RequestParam String email,
                              Model model) {
+        // 0) Always echo back what we received
+        String received = "username=" + username + " email=" + email;
+        model.addAttribute("debugReceived", received);
+
         Optional<User> opt = userRepo.findByUsernameAndEmail(username, email);
-        // Always show the same message for security
+
+        // 1) generic info banner
         model.addAttribute("message",
             "If an account matches those details, you’ll receive an email shortly."
         );
+
         if (opt.isPresent()) {
+            // 2) build token + link
             String token = UUID.randomUUID().toString();
-            // TODO: persist the token associated to user with expiry
             String resetLink = "https://your-domain.com/reset-password?token=" + token;
-    
-            // *** DEBUG: put the link into the model so the template can show it ***
             model.addAttribute("debugResetLink", resetLink);
-    
+
+            // 3) send the email
             emailService.sendPasswordResetEmail(email, resetLink);
         }
+
         return "forgot-password";
     }
-
 }
