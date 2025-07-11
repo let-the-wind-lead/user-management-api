@@ -45,11 +45,3 @@ JSON body:
   "role": "USER"
 }
 ```
-
----
-
-## 🛠️  How to Run
-
-### 🧪 Run Locally with Maven
-
-./mvnw spring-boot:run
