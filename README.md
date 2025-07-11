@@ -5,7 +5,7 @@ Deployed on [Railway](https://user-management-api-production-7709.up.railway.app
 
 ---
 
-## 🧰 Tech Stack
+## Tech Stack
 
 - Java 17
 - Spring Boot 3
@@ -17,7 +17,7 @@ Deployed on [Railway](https://user-management-api-production-7709.up.railway.app
 
 ---
 
-## 🚀 Features
+## Features
 
 - Register new users
 - Secure password hashing with BCrypt
@@ -28,7 +28,7 @@ Deployed on [Railway](https://user-management-api-production-7709.up.railway.app
 
 ---
 
-## 📦 API Endpoints
+## API Endpoints
 
 All endpoints are protected. Use Basic Auth (`admin:admin` for admin actions).
 
