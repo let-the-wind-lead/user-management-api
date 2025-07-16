@@ -2,6 +2,7 @@ package com.empress.usermanagementapi.controller;
 
 import com.empress.usermanagementapi.entity.User;
 import com.empress.usermanagementapi.repository.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,7 +32,13 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
+    public ResponseEntity<?> createUser(@RequestBody User user) {
+        // duplicate-email guard
+        if (userRepo.existsByEmail(user.getEmail())) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", "A user with this email already exists"));
+        }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         User saved = userRepo.save(user);
         return ResponseEntity
@@ -62,24 +69,18 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    //
-    // ——— Self-service endpoint for /user page ———
-    //
-
+    // ——— Self-service endpoint ———
     @PutMapping("/me")
     public ResponseEntity<User> updateMe(
         @AuthenticationPrincipal org.springframework.security.core.userdetails.User principal,
         @RequestBody Map<String,String> body
     ) {
-        // find our entity by login name
         User me = userRepo.findByUsername(principal.getUsername());
-        if (me == null) return ResponseEntity.status(500).build();
+        if (me == null) return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 
-        // update email if provided
         if (body.containsKey("email")) {
             me.setEmail(body.get("email"));
         }
-        // update password if provided
         if (body.containsKey("password") && !body.get("password").isEmpty()) {
             me.setPassword(passwordEncoder.encode(body.get("password")));
         }
