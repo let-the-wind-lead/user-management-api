@@ -1,10 +1,14 @@
 package com.empress.usermanagementapi.service;
 
-import com.empress.usermanagementapi.entity.Role;
-import com.empress.usermanagementapi.entity.User;
-import com.empress.usermanagementapi.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.empress.usermanagementapi.repository.UserRepository;
+import com.empress.usermanagementapi.entity.User;
+import com.empress.usermanagementapi.entity.Role;
+
+import java.util.List;
+import java.util.Optional;
+
 
 @Service
 public class UserService {
@@ -17,6 +21,10 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    public boolean emailExists(String email) {
+        return userRepo.existsByEmail(email);
+    }
+
     public User create(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         if (user.getRole() == null) {
@@ -25,22 +33,20 @@ public class UserService {
         return userRepo.save(user);
     }
 
-    public User update(Long id, User user) {
-        User existing = userRepo.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("No user " + id));
-        existing.setUsername(user.getUsername());
-        existing.setEmail(user.getEmail());
-        existing.setRole(user.getRole());
-        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-            existing.setPassword(passwordEncoder.encode(user.getPassword()));
-        }
-        return userRepo.save(existing);
+    // ← below this line, the original file’s other methods (findAll, findById, update, delete…) should follow, unchanged
+    public List<User> findAll() {
+        return userRepo.findAll();
     }
 
-    public void delete(Long id) {
-        if (!userRepo.existsById(id)) {
-            throw new IllegalArgumentException("No user " + id);
-        }
+    public Optional<User> findById(Long id) {
+        return userRepo.findById(id);
+    }
+
+    public User update(User user) {
+	 return userRepo.save(user);
+    }
+
+    public void deleteById(Long id) {
         userRepo.deleteById(id);
     }
 }

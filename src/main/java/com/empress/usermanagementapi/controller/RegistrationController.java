@@ -1,11 +1,12 @@
 package com.empress.usermanagementapi.controller;
 
-import com.empress.usermanagementapi.entity.Role;
-import com.empress.usermanagementapi.entity.User;
-import com.empress.usermanagementapi.service.UserService;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import com.empress.usermanagementapi.entity.User;
+import com.empress.usermanagementapi.entity.Role;
+import com.empress.usermanagementapi.service.UserService;
 
 @Controller
 public class RegistrationController {
@@ -17,7 +18,14 @@ public class RegistrationController {
     }
 
     @PostMapping("/register")
-    public String registerSubmit(@ModelAttribute("userForm") User userForm) {
+    public String registerSubmit(
+        @ModelAttribute("userForm") User userForm,
+        Model model
+    ) {
+        if (userService.emailExists(userForm.getEmail())) {
+            model.addAttribute("emailError", "Email already in use");
+            return "register";
+        }
         userForm.setRole(Role.USER);
         userService.create(userForm);
         return "redirect:/login?registered";
