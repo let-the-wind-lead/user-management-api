@@ -22,6 +22,12 @@ public class RegistrationController {
         @ModelAttribute("userForm") User userForm,
         Model model
     ) {
+        // check username first
+        if (userService.usernameExists(userForm.getUsername())) {
+            model.addAttribute("usernameError", "Username already in use");
+            return "register";
+        }
+        // then check email
         if (userService.emailExists(userForm.getEmail())) {
             model.addAttribute("emailError", "Email already in use");
             return "register";

@@ -33,12 +33,19 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<?> createUser(@RequestBody User user) {
+        // duplicate-username guard
+        if (userRepo.existsByUsername(user.getUsername())) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", "A user with this username already exists"));
+        }
         // duplicate-email guard
         if (userRepo.existsByEmail(user.getEmail())) {
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
                     .body(Map.of("error", "A user with this email already exists"));
         }
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         User saved = userRepo.save(user);
         return ResponseEntity
@@ -50,7 +57,9 @@ public class UserController {
     public ResponseEntity<User> updateUser(@PathVariable Long id,
                                            @RequestBody User user) {
         Optional<User> opt = userRepo.findById(id);
-        if (opt.isEmpty()) return ResponseEntity.notFound().build();
+        if (opt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
 
         User existing = opt.get();
         existing.setUsername(user.getUsername());
@@ -64,7 +73,9 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        if (!userRepo.existsById(id)) return ResponseEntity.notFound().build();
+        if (!userRepo.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
         userRepo.deleteById(id);
         return ResponseEntity.noContent().build();
     }
@@ -72,11 +83,13 @@ public class UserController {
     // ——— Self-service endpoint ———
     @PutMapping("/me")
     public ResponseEntity<User> updateMe(
-        @AuthenticationPrincipal org.springframework.security.core.userdetails.User principal,
-        @RequestBody Map<String,String> body
+            @AuthenticationPrincipal org.springframework.security.core.userdetails.User principal,
+            @RequestBody Map<String,String> body
     ) {
         User me = userRepo.findByUsername(principal.getUsername());
-        if (me == null) return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        if (me == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
 
         if (body.containsKey("email")) {
             me.setEmail(body.get("email"));
