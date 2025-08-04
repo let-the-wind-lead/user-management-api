@@ -32,5 +32,5 @@ build/
 ### VS Code ###
 .vscode/
 
-### local testing
+### local stuff ###
 src/main/resources/application.properties
