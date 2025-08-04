@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+## loval testing
+src/main/resources/application.properties
