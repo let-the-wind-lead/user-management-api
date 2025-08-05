@@ -69,8 +69,17 @@
       opts.credentials = 'include';
       opts.headers = { 'Content-Type': 'application/json' };
       const res = await fetch(API + path, opts);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json().catch(() => ({}));
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
+      if (!res.ok) {
+        const errorMsg = data?.error || 'HTTP ' + res.status;
+        throw new Error(errorMsg);
+      }
+      return data;
     }
 
     async function loadUsers() {
